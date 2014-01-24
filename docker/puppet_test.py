@@ -64,6 +64,7 @@ class PuppetContainer:
                  container_name = None,
                  puppet_facter_module = 'base',
                  puppet_facter_role = 'base',
+                 puppet_dir = '/root/puppet',
                  puppet_facter_platform = 'lxc',
                  docker_image = 'spil/slc-puppet-base',
                  docker_image_tag = '6.5',
@@ -87,6 +88,7 @@ class PuppetContainer:
         self.interactive = interactive
         self.docker_base_url = docker_base_url
         self.puppet_src_dir = puppet_src_dir
+        self.puppet_dir = puppet_dir
         self._docker_connection = None
         self.lifetime_limit = lifetime_limit
 
@@ -98,6 +100,15 @@ class PuppetContainer:
         except:
             self._docker_connection = docker.Client(base_url=self.docker_base_url)
         return self._docker_connection
+
+    def prepare_puppet_command(self):
+        command = "ln -sf %(puppet_dir)s/hieradata /etc/puppet/ && cd %(puppet_dir)s && FACTER_module='%(puppet_facter_module)s' FACTER_platform='lxc' FACTER_spil_environment='puppet_test' FACTER_role=%(puppet_facter_role)s puppet apply --hiera_config %(puppet_dir)s/hiera.yaml --detailed-exitcodes --verbose --debug --modulepath '%(puppet_dir)s/modules' manifests/site.pp" % {'puppet_dir':self.puppet_dir,'puppet_facter_role':self.puppet_facter_role,'puppet_facter_module':self.puppet_facter_module}
+        return command
+
+    def prepare_ssh_command(self, ipaddress, command):
+        ssh_command = "ssh -o LogLevel=FATAL -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o IdentitiesOnly=yes -i %(rsa_key)s %(ssh_user)s@%(ipaddress)s '%(command)s'" % {'ipaddress':ipaddress,'command':command,'rsa_key':self.rsa_key,'ssh_user':self.ssh_user}
+        logging.info('SSH command: %s' % command)
+        return ssh_command
 
     def remove(self):
         """ Remove container.
@@ -128,7 +139,7 @@ class PuppetContainer:
 
     @retry(tries=4,delay=1, backoff=2)
     def test_ssh(self, ip):
-        task = prepare_ssh_test_command(ip, self.rsa_key, self.ssh_user)
+        task = self.prepare_ssh_command(ip, 'ls -la')
 
         (retcode, stdout, stderr) = run_and_capture_output(task,ignore_error=True)
         if retcode == 0:
@@ -146,13 +157,13 @@ class PuppetContainer:
 
         self.docker_client.create_container("%s:%s" % (self.docker_image, self.docker_image_tag),
                                             command=["/root/puppet/docker/init.sh"],
-                                            stdin_open=True, tty=True,volumes=['/root/puppet'],
+                                            stdin_open=True, tty=True,volumes=[self.puppet_dir],
                                             name=self.container_name)
 
         time.sleep(1)
 
         logging.info('Start')
-        self.docker_client.start(self.container_name,binds={self.puppet_src_dir: '/root/puppet'})
+        self.docker_client.start(self.container_name,binds={self.puppet_src_dir: self.puppet_dir})
 
         time.sleep(2)
 
@@ -207,11 +218,8 @@ class PuppetContainer:
             return result
 
 
-	task = prepare_puppet_command(inspect['NetworkSettings']['IPAddress'],
-				      self.puppet_facter_role,
-				      self.puppet_facter_module,
-				      self.rsa_key,
-				      self.ssh_user)
+        task = self.prepare_ssh_command(ip, self.prepare_puppet_command())
+
         stdout = ''
         stderr = ''
         time_start = 0
@@ -282,17 +290,6 @@ def run_and_capture_output(cmd, ignore_error=False):
         logging.debug('Non zero exit code, but ignore: %s' % retcode)
     return (retcode, stdout, stderr)
 
-def prepare_puppet_command(ipaddress, puppet_facter_role, puppet_facter_module, rsa_key, ssh_user):
-    puppet_run_command = "ln -sf /root/puppet/hieradata /etc/puppet/ && cd /root/puppet && FACTER_module='%(puppet_facter_module)s' FACTER_platform='lxc' FACTER_spil_environment='puppet_test' FACTER_role=%(puppet_facter_role)s puppet apply --hiera_config /root/puppet/modules/puppet/files/hiera.yaml --detailed-exitcodes --verbose --debug --modulepath '/root/puppet/modules' manifests/site.pp" % {'puppet_facter_role':puppet_facter_role,'puppet_facter_module':puppet_facter_module}
-
-    ssh_command = "ssh -o LogLevel=FATAL -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o IdentitiesOnly=yes -i %(rsa_key)s %(ssh_user)s@%(ipaddress)s '%(puppet_run_command)s'" % {'ipaddress':ipaddress,'puppet_run_command':puppet_run_command,'rsa_key':rsa_key,'ssh_user':ssh_user}
-    logging.info('SSH command: %s' % ssh_command)
-    return ssh_command
-
-def prepare_ssh_test_command(ipaddress, rsa_key, ssh_user):
-    ssh_command = "ssh -o LogLevel=FATAL -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o IdentitiesOnly=yes -i %(rsa_key)s %(ssh_user)s@%(ipaddress)s '%(run)s'" % {'ipaddress':ipaddress,'run':'ls -la','rsa_key':rsa_key,'ssh_user':ssh_user}
-    logging.debug('SSH command: %s' % ssh_command)
-    return ssh_command
 
 def test_container(pcontainer):
     pcontainer.remove()
@@ -483,7 +480,7 @@ if __name__ == '__main__':
     parser.add_argument("--docker_rsa_key","--rsa", dest="docker_rsa_key",
             help="path to the RSA key to access docker containers")
 
-    parser.add_argument("--reports-dir",dest="reports_dir", default=os.getcwd(),
+    parser.add_argument("--reports-dir", dest="reports_dir", default=os.getcwd(),
             help="directory to store reports")
 
     args = parser.parse_args()
@@ -513,12 +510,6 @@ if __name__ == '__main__':
     if args.reports_dir and not os.path.exists(args.reports_dir):
             logging.error("Reports dir does not exist: '%s'" % args.reports_dir)
             sys.exit(1)
-#####
-#    results = [{'puppet_module': 'nginx', 'task': 'task', 'retcode': 'retcode', 'stdout': 'stdout', 'puppet_failed': 'True', 'stderr': 'stderr', 'time': '0:123'}, {'puppet_module': 'nginx1', 'task': 'task', 'retcode': 'retcode', 'stdout': 'stdout', 'puppet_failed': 'True', 'stderr': 'stderr', 'time': '0:123'}, {'puppet_module': 'nginx2', 'task': 'task', 'retcode': 'retcode', 'stdout': 'stdout', 'puppet_failed': 'True', 'stderr': 'stderr', 'time': '0:123'}]
-#
-#    results_save_report(results, args.reports_dir, True, templates_dir)
-#    sys.exit(0)
-######
 
     if args.puppet_module:
         puppet_facter_module = args.puppet_module
@@ -586,5 +577,5 @@ if __name__ == '__main__':
     results_save_report(results, args.reports_dir, do_render_html=True, template_dir=template_dir)
 
     if remove_base_image:
-        print 'All test complete - remove base image'
+        logging.info('All test complete - remove base image')
         pcontainer.docker_client.remove_image('spil/slc-puppet-base:6.5')

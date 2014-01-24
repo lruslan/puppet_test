@@ -1,0 +1,6 @@
+PyYAML==3.10
+argparse==1.2.1
+docker-py==0.2.3
+ipython==1.1.0
+Jinja2==2.7.2
+ansi2html==1.0.6

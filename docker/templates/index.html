@@ -1,0 +1,55 @@
+<html>
+	<head>
+		<title>Puppet tests</title>
+	</head>
+	<body>
+		<h2> Puppet tests </h2>
+		{% if results %}
+		<table align="left" border="1" cellpadding="1" cellspacing="1" style="width: 500px;">
+			<thead>
+				<tr>
+					<th scope="col">
+						Module</th>
+					<th scope="col">
+						Status</th>
+					<th scope="col">
+						&nbsp;Time</th>
+					<th scope="col">
+						&nbsp;Stdout</th>
+					<th scope="col">
+						&nbsp;Stderr</th>
+				</tr>
+			</thead>
+			<tbody>
+			{# result = {'puppet_module':self.puppet_facter_module, 'task':None, 'retcode':1, 'stdout':None, 'stderr':stderr, 'time':None}
+			#}
+			{% for result in results %}
+				<tr>
+					<td>{{result.puppet_module}}</td>
+					<td>
+						{% if result.puppet_failed == True %}
+						<span style="background-color:#ff0000;">Failed</span>
+						{% endif %}
+						{% if result.puppet_failed == False %}
+						<span style="background-color:#00ff00;">Passed</span>
+						{% endif %}
+
+					</td>
+					<td>{{result.time}}</td>
+					{% if result.stdout %}
+					<td><a href="{{result.puppet_module}}_stdout.html">stdout</a></td>
+					{% else %}
+					<td></td>
+					{% endif %}
+					{% if result.stderr %}
+					<td><a href="{{result.puppet_module}}_stderr.html">stderr</a></td>
+					{% else %}
+					<td></td>
+					{% endif %}
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+		{% endif %}
+	</body>
+</html>
