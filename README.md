@@ -2,9 +2,10 @@ puppet_test
 ===========
 
 Functional testing of Puppet modules
-# Installation 
+# Installation and configuration
 
-Before deal with docker imake sure SELinux is disabled!!!!
+Make sure SELinux is disabled!!!!
+
 To disable SELinux :
 1) Change configuration and Reboot
 /etc/selinux/config
