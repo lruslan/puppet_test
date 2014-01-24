@@ -31,15 +31,16 @@ docker build -t spil/slc-puppet:6.5 .
 ```
 
 # Usage
-Use ./docker/puppet_test.py
-* Create virtualenv and install dependencies
+For module testing use script ./docker/puppet_test.py
+
+Create virtualenv and install dependencies:
 ```
 virtualenv .env
 source .env/bin/activate
 pip install -r requirements.txt
 ```
 
-* Check details of usage
+Check details of script usage:
 ```
 ./docker/puppet_test.py -h
 ```
