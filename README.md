@@ -8,25 +8,25 @@ Make sure SELinux is disabled
 
 To disable SELinux:
 
-1) Change configuration and reboot server
+1. Change configuration and reboot server
 
 /etc/selinux/config:
 ```
 SELINUX=disabled
 ```
 
-2) Make sure forwarding is enabled:
+2. Make sure forwarding is enabled:
 ```
 sysctl net.ipv4.ip_forward=1
 ```
 
-3) Install necessary components and build basic docker image
+3. Install necessary components and build basic docker image
 ```
 cd ./docker
 ./prepare_docker.sh
 ```
 
-4) Build image using Dockerfile
+4. Build image using Dockerfile
 ```
 cd ./docker
 docker build -t spil/slc-puppet:6.5 .
@@ -47,13 +47,14 @@ Check details of script usage:
 ./docker/puppet_test.py -h
 ```
 # Examples
-start testing of modules :nginx,mysql,erlang
-enable 'quick' mode:  if base image exist it will be reused
-run tests in parallel: use 3 workers
+- start testing of modules: nginx,mysql,erlang
+- enable 'quick' mode:  if base image exist it will be reused
+- run tests in parallel: use 3 workers
 ```
 ./docker/puppet_test.py --quick -m nginx,mysql,erlang -p 3 --puppet-directory /vagrant/puppet_test
 ```
-run all modules with tests
+
+- run all modules with tests
 ```
 ./docker/puppet_test.py --quick -a -p 10 --puppet-directory /vagrant/puppet_test
 ```
