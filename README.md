@@ -51,7 +51,7 @@ run tests in parallel: use 3 workers
 ```
 ./docker/puppet_test.py --quick -m nginx,mysql,erlang -p 3 --puppet-directory /vagrant/puppet_test
 ```
-test all modules with test class
+run all modules with tests
 ```
 ./docker/puppet_test.py --quick -a -p 10 --puppet-directory /vagrant/puppet_test
 ```
