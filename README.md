@@ -6,7 +6,8 @@ Functional testing of Puppet modules
 
 Make sure SELinux is disabled
 
-To disable SELinux :
+To disable SELinux:
+
 1) Change configuration and Reboot
 /etc/selinux/config
 ```
