@@ -454,7 +454,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         description='Test puppet using Docker and a pinch of magic',
-        epilog="Example: ")
+        epilog="Example: ./docker/puppet_test.py --quick -m nginx,mysql,erlang -p 3 --puppet-directory /vagrant/puppet_test")
 
     parser.add_argument("--module","-m", dest="puppet_module",
             help="module to test")
