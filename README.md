@@ -2,6 +2,14 @@ puppet_test
 ===========
 
 Functional testing of Puppet modules
+
+This repository contain puppet demo environment with automation scripts
+
+All scripts located inside ./docker directory
+
+Main automation script is ./docker/puppet_test.py
+
+
 # Installation and configuration
 
 Make sure SELinux is disabled
