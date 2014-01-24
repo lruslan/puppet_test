@@ -63,4 +63,3 @@ Script will generate 'report' folder (by default inside working directory)
 With two type of reports:
 * 'html' subdirectory containing overview of testing results in html format, 
 * set of directories with yaml files containining details about tests
-```
