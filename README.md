@@ -56,10 +56,11 @@ run tests in parallel: use 3 workers
 run all modules with tests
 ```
 ./docker/puppet_test.py --quick -a -p 10 --puppet-directory /vagrant/puppet_test
+```
 
 # Reports
 Script will generate 'report' folder (by default inside working directory)
 With two type of reports:
-*'html' subdirectory containing overview of testing results in html format, 
-*set of directories with yaml files containining details about tests
+* 'html' subdirectory containing overview of testing results in html format, 
+* set of directories with yaml files containining details about tests
 ```
