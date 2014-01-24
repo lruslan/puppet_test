@@ -9,6 +9,8 @@ All scripts located inside ./docker directory
 
 Main automation script is ./docker/puppet_test.py
 
+Current project is used and tested on SLC6 and should work on RHEL6 as well 
+
 
 # Installation and configuration
 
@@ -72,3 +74,10 @@ Script will generate 'report' folder (by default inside working directory)
 With two type of reports:
 * 'html' subdirectory contain overview of testing results in html format, 
 * set of directories with details about tests in yaml format
+
+# Running as a Jenkins job
+Make sure jenkins user are belongs to group 'docker'
+```
+usermod -a -G docker jenkins
+```
+In order to track changes 
