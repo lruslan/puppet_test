@@ -8,8 +8,9 @@ Make sure SELinux is disabled
 
 To disable SELinux:
 
-1) Change configuration and Reboot
-/etc/selinux/config
+1) Change configuration and reboot server
+
+/etc/selinux/config:
 ```
 SELINUX=disabled
 ```
